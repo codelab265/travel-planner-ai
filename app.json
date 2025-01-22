@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "travel-planner-ai",
-    "slug": "travel-planner-ai",
+    "name": "devao-wonders",
+    "slug": "devao-wonders",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,13 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.codelab265.travelplannerai"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.codelab265.travelplannerai"
     },
     "web": {
       "bundler": "metro",
@@ -30,8 +32,11 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#04132c"
         }
+      ],
+      [
+        "expo-file-system"
       ]
     ],
     "experiments": {
