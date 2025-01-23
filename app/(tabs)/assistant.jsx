@@ -1,4 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  Linking,
+} from "react-native";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { GiftedChat, Message } from "react-native-gifted-chat";
 import * as GoogleGenerativeAI from "@google/generative-ai";
@@ -115,6 +122,7 @@ const Assistant = () => {
           setIsTyping(true);
           const result = await chatSession.sendMessage(userMessage.text);
           const response = await result.response.text();
+          console.log("Response:", response);
 
           const assistantMessage = {
             _id: Date.now().toString(),
@@ -163,6 +171,105 @@ const Assistant = () => {
     return text.replace(/\*\*(.*?)\*\*/g, "$1");
   };
 
+  const handleLinkPress = async (url) => {
+    try {
+      // Clean and validate the URL
+      if (!url) {
+        console.error("Invalid URL:", url);
+        Alert.alert("Error", "Invalid link format");
+        return;
+      }
+
+      // Ensure the URL is properly encoded
+      const encodedUrl = encodeURI(url);
+      const supported = await Linking.canOpenURL(encodedUrl);
+
+      if (supported) {
+        await Linking.openURL(encodedUrl);
+      } else {
+        // Try opening in Google Maps app with a different format
+        const coordinates = url.match(/query=([-\d.]+),([-\d.]+)/);
+        if (coordinates) {
+          const [_, lat, lng] = coordinates;
+          const mapsUrl = `google.navigation:q=${lat},${lng}`;
+          const canOpenMaps = await Linking.canOpenURL(mapsUrl);
+
+          if (canOpenMaps) {
+            await Linking.openURL(mapsUrl);
+          } else {
+            // Fallback to browser
+            await Linking.openURL(encodedUrl);
+          }
+        } else {
+          Alert.alert("Error", "Cannot open this link");
+        }
+      }
+    } catch (error) {
+      console.error("Error opening link:", error);
+      Alert.alert("Error", "Failed to open link");
+    }
+  };
+
+  const renderMessageText = (text) => {
+    // Updated regex to better handle Google Maps links
+    const linkRegex =
+      /\[([^\]]+)\]\((https:\/\/(?:www\.)?google\.com\/maps\/[^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+      // Process text before the link with bold formatting
+      if (match.index > lastIndex) {
+        const beforeText = text.slice(lastIndex, match.index);
+        parts.push(
+          <Text key={`text-${lastIndex}`}>
+            {beforeText.split("**").map((part, index) => (
+              <Text
+                key={index}
+                style={index % 2 === 1 ? styles.boldText : null}
+              >
+                {part}
+              </Text>
+            ))}
+          </Text>
+        );
+      }
+
+      // Add the link with proper URL extraction
+      const [fullMatch, linkText, url] = match;
+      if (url) {
+        parts.push(
+          <Text
+            key={`link-${match.index}`}
+            style={styles.link}
+            onPress={() => handleLinkPress(url)}
+          >
+            {linkText}
+          </Text>
+        );
+      }
+
+      lastIndex = match.index + fullMatch.length;
+    }
+
+    // Process remaining text with bold formatting
+    if (lastIndex < text.length) {
+      const remainingText = text.slice(lastIndex);
+      parts.push(
+        <Text key={`text-${lastIndex}`}>
+          {remainingText.split("**").map((part, index) => (
+            <Text key={index} style={index % 2 === 1 ? styles.boldText : null}>
+              {part}
+            </Text>
+          ))}
+        </Text>
+      );
+    }
+
+    return parts;
+  };
+
   const renderMessage = useCallback((props) => {
     const message = props.currentMessage;
     if (!message) return null;
@@ -172,15 +279,7 @@ const Assistant = () => {
         <View style={styles.messageBubbleContainer}>
           <View style={styles.assistantBubble}>
             <Text style={styles.messageText}>
-              {message.text.split("**").map((part, index) =>
-                index % 2 === 0 ? (
-                  <Text key={index}>{part}</Text>
-                ) : (
-                  <Text key={index} style={styles.boldText}>
-                    {part}
-                  </Text>
-                )
-              )}
+              {renderMessageText(message.text)}
             </Text>
           </View>
         </View>
@@ -248,10 +347,13 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: "bold",
-    marginBottom: 4,
-    display: "block",
     color: "#007AFF",
     fontSize: 18,
+  },
+  link: {
+    color: "red",
+    textDecorationLine: "underline",
+    fontWeight: "500",
   },
 });
 
