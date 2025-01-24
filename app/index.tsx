@@ -92,7 +92,7 @@ export default function WelcomeScreen() {
 
       <View style={styles.content}>
         <MaterialIcons name="travel-explore" size={80} color="white" />
-        <Text style={styles.title}>Davao Wonders</Text>
+        <Text style={styles.title}>Davao Wanderer</Text>
         <Text style={styles.subtitle}>
           Your personal guide to explore the wonders of Davao
         </Text>
