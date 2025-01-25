@@ -18,7 +18,7 @@ const Assistant = () => {
   const [chatSession, setChatSession] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const apiKey = `${process.env.EXPO_PUBLIC_GEMINI_API_KEY}`;
+  const apiKey = "AIzaSyCEXn29sdsl_uCu34CJSHd6eGk8w5rgrek";
   const { chatId } = useLocalSearchParams();
   const { addChat, updateChat, getChatById } = useTravelPlans();
   const router = useRouter();
